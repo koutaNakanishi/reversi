@@ -47,7 +47,7 @@ func CreateOrJoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreatewsAdress(roomID int) string {
-	return WS_ADRESS + "/" + strconv.Itoa(roomID)
+	return WS_ADRESS + "/room" + strconv.Itoa(roomID)
 }
 
 func CreateRooms() {
@@ -73,6 +73,7 @@ func main() {
 	//r := newRoom()
 	CreateRooms()
 	http.Handle("/", &templateHandler{filename: "loby.html"})
+	http.Handle("/game", &templateHandler{filename: "game.html"})
 	//http.Handle("/room", r)
 	CreateRoomsHTTPHandle()
 	http.HandleFunc("/createOrJoinRoom", CreateOrJoinRoomHandler)

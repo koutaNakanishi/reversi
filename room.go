@@ -68,18 +68,23 @@ func (r *room) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		log.Fatal("ServeHTTP:", err)
 		return
 	}
+
 	fmt.Println("len(r.clients)=", len(r.clients))
 	if len(r.clients) >= MAX_CONNECTION_PER_ROOM {
 		fmt.Println("Can't connect this room")
 		return
 	}
+
 	client := &client{
 		socket: socket,
 		send:   make(chan []byte, messageBufferSize),
 		room:   r,
 	}
 	r.join <- client
-	defer func() { r.leave <- client }()
+	defer func() {
+		r.leave <- client
+		fmt.Println("leave room")
+	}()
 	go client.write()
 	client.read()
 }
