@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+	"strconv"
 	"sync"
 )
 
@@ -23,11 +24,43 @@ func (t *templateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) { //
 	t.templ.Execute(w, r)
 }
 
+var rooms []*room
+
+func CreateOrJoinRoomHandler(w http.ResponseWriter, r *http.Request) {
+
+	for roomID := 0; roomID < MAX_ROOM_NUM; roomID++ {
+
+	}
+}
+
+func CreateRooms() {
+	for i := 0; i < MAX_ROOM_NUM; i++ {
+		rooms = append(rooms, newRoom())
+	}
+}
+
+func CreateRoomsHTTPHandle() {
+	for i := 0; i < MAX_ROOM_NUM; i++ {
+		room_url := "/room" + strconv.Itoa(i)
+		fmt.Println(room_url)
+		http.Handle(room_url, rooms[i])
+	}
+}
+
+func RunRooms() {
+	for i := 0; i < MAX_ROOM_NUM; i++ {
+		go rooms[i].run()
+	}
+}
 func main() {
-	r := newRoom()
+	//r := newRoom()
+	CreateRooms()
 	http.Handle("/", &templateHandler{filename: "chat.html"})
-	http.Handle("/room", r)
-	go r.run()
+	//http.Handle("/room", r)
+	CreateRoomsHTTPHandle()
+	http.HandleFunc("/createOrJonRoom", CreateOrJoinRoomHandler)
+	//go r.run()
+	RunRooms()
 	fmt.Println("Start the ChatService")
 	if err := http.ListenAndServe(":8081", nil); err != nil {
 		log.Fatal("ListenAndServe:", err)

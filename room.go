@@ -8,8 +8,8 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-const MAX_CONNECTION_PER_ROOM = 2
-
+const MAX_CONNECTION_PER_ROOM = 2 //1部屋に繋げる最大の人数
+const MAX_ROOM_NUM = 10           //最大のサーバ全体の部屋の数
 type room struct {
 	forward chan MessageInfo //誰かが送信したメッセージ
 	join    chan *client     //入室してきたクライアント
