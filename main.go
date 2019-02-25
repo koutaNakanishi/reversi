@@ -29,7 +29,7 @@ func main() {
 	http.Handle("/room", r)
 	go r.run()
 	fmt.Println("Start the ChatService")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	if err := http.ListenAndServe(":8081", nil); err != nil {
 		log.Fatal("ListenAndServe:", err)
 	}
 }

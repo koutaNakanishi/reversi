@@ -1,11 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/gorilla/websocket"
 )
+
+const MAX_CONNECTION_PER_ROOM = 2
 
 type room struct {
 	forward chan MessageInfo //誰かが送信したメッセージ
@@ -60,6 +63,11 @@ func (r *room) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	socket, err := upgrader.Upgrade(w, req, nil)
 	if err != nil {
 		log.Fatal("ServeHTTP:", err)
+		return
+	}
+	fmt.Println("len(r.clients)=", len(r.clients))
+	if len(r.clients) >= MAX_CONNECTION_PER_ROOM {
+		fmt.Println("Can't connect this room")
 		return
 	}
 	client := &client{

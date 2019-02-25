@@ -55,8 +55,8 @@
     if (!window["WebSocket"]) {
       alert("エラー: WebSocketに対応していないブラウザです。")
     } else {
-        socket = new WebSocket("ws://mohuapps.xyz/room");//on operate
-        //socket = new WebSocket("ws://localhost:8080/room"); //on develop
+        //socket = new WebSocket("ws://mohuapps.xyz/room");//on operate
+        socket = new WebSocket("ws://localhost:8081/room"); //on develop
         setInterval(pingping.bind(this,socket),10000);//pingping() サーバに適当なメッセージ送信
 
       socket.onclose = function(e) {
