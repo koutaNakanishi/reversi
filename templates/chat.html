@@ -1,0 +1,76 @@
+<html>
+  <head>
+    <title>チャット</title>
+    <style>
+      /* input { display: block; } */
+      /* ul { list-style: none; } */
+   </style>
+ </head>
+ <body>
+
+   とてもシンプルな匿名チャット
+   <form id="chatbox">
+     <!-- メッセージ：<textarea name="msgArea"></textarea> -->
+     <!-- 名前：<textarea name="nameArea" placeholder="名無し"></textarea> -->
+     <div class="cp_iptxt">
+       メッセージ：<input type="textarea" name="msgArea" placeholder="メッセージ"><br>
+       名前：<input type="text" name="nameArea" placeholder="お名前">
+       <i class="fa fa-user fa-lg fa-fw" aria-hidden="true"></i>
+     </div>
+     <input type="submit" value="送信" />
+   </form>
+   <ul id="messages"></ul>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js">
+</script>
+<script>
+  function pingping(socket){
+    socket.send("");//から文字列を送る
+  }
+  $(function(){
+    var socket = null;
+    var msgBox = $("#chatbox [name=msgArea]");
+    var nameBox= $("#chatbox [name=nameArea]");
+    var messages = $("#messages");
+
+    $("#chatbox").submit(function(){
+      if (!msgBox.val()) return false;
+        if (!socket) {
+        alert("エラー: WebSocket接続が行われていません。");
+        return false;
+      }
+      if(!nameBox.val()){
+        alert("名前が入力されていません!")
+        return false;
+      }
+
+      //バリデーション修了
+      var obj={
+        name:nameBox.val(),
+        message:msgBox.val()
+      }
+      socket.send(JSON.stringify(obj));
+      msgBox.val("");
+      return false;
+    });
+    if (!window["WebSocket"]) {
+      alert("エラー: WebSocketに対応していないブラウザです。")
+    } else {
+        socket = new WebSocket("ws://mohuapps.xyz/room");//on operate
+        //socket = new WebSocket("ws://localhost:8080/room"); //on develop
+        setInterval(pingping.bind(this,socket),10000);//pingping() サーバに適当なメッセージ送信
+
+      socket.onclose = function(e) {
+        alert("接続が終了しました。");
+        console.log("Close Code="+e.code);
+        console.log("|Close reason="+e.reason);
+      }
+
+      socket.onmessage = function(e) {
+        messages.append($("<li>").text(e.data));
+      }
+    }
+  });
+</script>
+
+ </body>
+</html>
