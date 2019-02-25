@@ -17,6 +17,9 @@ type room struct {
 	clients map[*client]bool //入室しているクライアント一覧
 }
 
+func (r *room) GetRoomNum() int {
+	return len(r.clients)
+}
 func newRoom() *room {
 	return &room{
 		forward: make(chan MessageInfo),

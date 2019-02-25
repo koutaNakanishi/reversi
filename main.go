@@ -10,6 +10,7 @@ import (
 	"sync"
 )
 
+const WS_ADRESS = "ws://localhost:8081" //本番かローカルかで使い分けよう
 type templateHandler struct {
 	once     sync.Once
 	filename string
@@ -27,10 +28,26 @@ func (t *templateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) { //
 var rooms []*room
 
 func CreateOrJoinRoomHandler(w http.ResponseWriter, r *http.Request) {
-
-	for roomID := 0; roomID < MAX_ROOM_NUM; roomID++ {
-
+	will_join_room := -1
+	for i, room := range rooms {
+		if room.GetRoomNum() == 0 {
+			will_join_room = i
+			break
+		} else if room.GetRoomNum() < MAX_CONNECTION_PER_ROOM {
+			will_join_room = i
+			break
+		}
 	}
+
+	if will_join_room == -1 {
+		fmt.Println("Error:Can'tJoinProperRoom")
+	}
+
+	fmt.Fprintf(w, CreatewsAdress(will_join_room))
+}
+
+func CreatewsAdress(roomID int) string {
+	return WS_ADRESS + "/" + strconv.Itoa(roomID)
 }
 
 func CreateRooms() {
@@ -55,10 +72,10 @@ func RunRooms() {
 func main() {
 	//r := newRoom()
 	CreateRooms()
-	http.Handle("/", &templateHandler{filename: "chat.html"})
+	http.Handle("/", &templateHandler{filename: "loby.html"})
 	//http.Handle("/room", r)
 	CreateRoomsHTTPHandle()
-	http.HandleFunc("/createOrJonRoom", CreateOrJoinRoomHandler)
+	http.HandleFunc("/createOrJoinRoom", CreateOrJoinRoomHandler)
 	//go r.run()
 	RunRooms()
 	fmt.Println("Start the ChatService")
