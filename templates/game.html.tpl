@@ -48,10 +48,6 @@ function draw1(){
 <script>
 var in_room=false;
 
-
-
-
-
 $(function(){
 
   $("#backButton").on('click',function(){

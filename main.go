@@ -5,7 +5,6 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strconv"
 	"sync"
@@ -19,9 +18,6 @@ type templateHandler struct {
 }
 
 func (t *templateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) { //rootアクセス時chat.htmlを生成する
-	file, _ := os.Open("templates/board.png")
-
-	defer file.Close()
 	t.once.Do(func() {
 		t.templ = template.Must(template.ParseFiles(
 			filepath.Join("templates", t.filename)))
