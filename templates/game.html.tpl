@@ -11,7 +11,7 @@
        <input type="button" value="タイトルに戻る"/>
   </form>
 
-  <img id="test" src="/home/mohutarou/work/reversi/templates/black.png" alt="表示エラー">
+  <img id="test" src="http://localhost:8081/templates/board.png" alt="表示エラー">
 
 
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"> </script>

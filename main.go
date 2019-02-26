@@ -79,6 +79,7 @@ func main() {
 	CreateRooms()
 	http.Handle("/", &templateHandler{filename: "loby.html"})
 	http.Handle("/game", &templateHandler{filename: "game.html.tpl"})
+	http.Handle("/templates/", http.FileServer(http.Dir("./")))
 	//http.Handle("/room", r)
 	CreateRoomsHTTPHandle()
 	http.HandleFunc("/createOrJoinRoom", CreateOrJoinRoomHandler)
