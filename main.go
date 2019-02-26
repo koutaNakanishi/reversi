@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strconv"
 	"sync"
@@ -18,16 +19,20 @@ type templateHandler struct {
 }
 
 func (t *templateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) { //rootアクセス時chat.htmlを生成する
+	file, _ := os.Open("templates/board.png")
+
+	defer file.Close()
 	t.once.Do(func() {
 		t.templ = template.Must(template.ParseFiles(
 			filepath.Join("templates", t.filename)))
+
 	})
 	t.templ.Execute(w, r)
 }
 
 var rooms []*room
 
-func CreateOrJoinRoomHandler(w http.ResponseWriter, r *http.Request) {
+func CreateOrJoinRoomHandler(w http.ResponseWriter, r *http.Request) { // /createOrJoiにアクセスした時に呼ばれる
 	will_join_room := -1
 	for i, room := range rooms {
 		if room.GetRoomNum() == 0 {
@@ -73,7 +78,7 @@ func main() {
 	//r := newRoom()
 	CreateRooms()
 	http.Handle("/", &templateHandler{filename: "loby.html"})
-	http.Handle("/game", &templateHandler{filename: "game.html"})
+	http.Handle("/game", &templateHandler{filename: "game.html.tpl"})
 	//http.Handle("/room", r)
 	CreateRoomsHTTPHandle()
 	http.HandleFunc("/createOrJoinRoom", CreateOrJoinRoomHandler)
