@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/gorilla/websocket"
 )
@@ -36,7 +37,14 @@ func (c *client) read() {
 			}
 			//c.room.forward <- messageInfo //クライアントから受け取ったメッセージを送信
 			if messageInfo.Operation == "require" {
-				writeRequire(c) //要はクライアントにrequireの要求結果を送信する
+				c.WriteRequire() //要はクライアントにrequireの要求結果を送信する
+			}
+			if messageInfo.Operation == "put" {
+
+				x, _ := strconv.Atoi(string(messageInfo.Msg[0]))
+				y, _ := strconv.Atoi(string(messageInfo.Msg[1]))
+				fmt.Println(x + y)
+				c.room.game.PutStone(c, x, y)
 			}
 		} else {
 			break
@@ -45,8 +53,19 @@ func (c *client) read() {
 	c.socket.Close()
 }
 
-func writeRequire(c *client) {
+func (c *client) WriteRequire() {
 	sendMessageInfo := MessageInfo{Operation: "board", Msg: c.room.game.GetBoardStr()}
+	sendJSON, err := json.Marshal(sendMessageInfo)
+	if err != nil {
+		fmt.Println("JSON MARCHAL ERR:", err)
+	}
+	if err := c.socket.WriteMessage(websocket.TextMessage, sendJSON); err != nil {
+		fmt.Println("ERROR IN writeRequire")
+	}
+}
+
+func (c *client) WriteNotice(msg string) {
+	sendMessageInfo := MessageInfo{Operation: "put", Msg: msg}
 	sendJSON, err := json.Marshal(sendMessageInfo)
 	if err != nil {
 		fmt.Println("JSON MARCHAL ERR:", err)

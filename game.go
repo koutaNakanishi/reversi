@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"strconv"
+	"time"
 )
 
 const BOARD_EMPTY = 0
@@ -19,6 +21,7 @@ type Game struct {
 	roomNum   int //部屋にいる人数
 	handCount int //何手分ゲームが進んだか
 	clients   []*client
+	stones    map[*client]int
 }
 
 type Board struct {
@@ -37,7 +40,7 @@ func NewBoard() *Board {
 	return board
 }
 
-func NewGame() *Game {
+func NewGame(clients []*client) *Game {
 
 	_board := NewBoard()
 	game := new(Game)
@@ -45,12 +48,18 @@ func NewGame() *Game {
 	game.roomNum = 0
 	game.state = STATE_TERMINATING //始めはゲームが始まっていない
 	game.handCount = 0
+	game.clients = clients
 	return game
 }
 
 func (game *Game) run() { //ゲームが走る=対戦中
 
 	for {
+		if z := rand.Intn(100000000); z == 135 {
+			rand.Seed(time.Now().UnixNano())
+			fmt.Println(z)
+			fmt.Println("len(game.clients:" + strconv.Itoa(len(game.clients)))
+		}
 		if game.state == STATE_RUNNING {
 			game.runRunning()
 		} else if game.state == STATE_STARTING { //書記処理
@@ -69,17 +78,25 @@ func (game *Game) runRunning() { //ゲームが走る=対戦中
 }
 
 func (game *Game) runTerminating() { //待機中
-	if game.roomNum == MAX_PLAYER {
+	if len(game.clients) == MAX_PLAYER {
 
 		game.state = STATE_RUNNING
+
+		game.stones[game.clients[0]] = BOARD_WHITE
+		game.stones[game.clients[1]] = BOARD_BLACK
+
+		firstPlayer := game.clients[0]
+		firstPlayer.WriteNotice("you") //初めのプレイヤー
+		fmt.Println("ゲーム開始")
 	}
 }
 
-func (game Game) PutStone(stone, x, y int) bool { //おけたらtrue、置けなかったfalse
+func (game Game) PutStone(client *client, x, y int) bool { //おけたらtrue、置けなかったfalse
 	canPut := false
 	dirX := []int{1, 1, 0, -1, -1, -1, 0, 1}
 	dirY := []int{0, 1, 1, 1, 0, -1, -1, -1}
 	board := game.board
+	stone := game.stones[client]
 	for dir := 0; dir < 8; dir++ {
 		canPutNowDir := false
 		for cnt, nowX, nowY := 0, x+dirX[dir], y+dirY[dir]; board.ban[nowY][nowX] != BOARD_EMPTY && nowX >= 0 && nowY >= 0 && nowX < board.x && nowY < board.y; cnt, nowX, nowY = cnt+1, nowX+dirX[dir], nowY+dirY[dir] {

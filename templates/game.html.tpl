@@ -2,6 +2,7 @@
   <head>
     <script>
       //preload
+      var socket;
       var board = new Image();    //画像オブジェクト作成
       var white = new Image();
       var black = new Image();
@@ -34,6 +35,7 @@ var canvas=document.getElementById("cv1");
 var boardX=100,boardY=100;
 var stoneX=100,stoneY=100;
 var myStone=0;
+var myTurn=false;
 function draw1(){
 
   for(var y=0;y<maxY;y++){
@@ -45,6 +47,11 @@ function draw1(){
 </script>
 
 <script>
+
+function sendMessageInfo(operation,message){
+  sendJSON=JSON.stringify({"operation":operation,"message":message});
+  socket.send(sendJSON);
+}
 function fetchBoard(board){
   for(var y=0;y<maxY;y++){
     for(var x=0;x<maxX;x++){
@@ -59,6 +66,12 @@ function fetchBoard(board){
   }
 }
 
+function fetchInfo(msg){
+  if(msg=="you"){
+    myTurn=true;
+  }
+}
+
 </script>
 
 <script>
@@ -67,6 +80,9 @@ function onDown(e){
   var x = e.clientX - canvas.offsetLeft;
   var y = e.clientY - canvas.offsetTop;
   console.log("x:", x, "y:", y);
+  if(myTurn){
+    sendMessageInfo("put",String(x/8)+String(y/8));//クライアントは打つ位置だけ知らせる
+  }
 }
 
 canvas.addEventListener("mousedown",onDown,false);
@@ -96,8 +112,12 @@ $(function(){
       //console.log(e.data)
       var obj=JSON.parse(e.data);//送られてきたJSONを受け取る
       console.log("operation="+obj.operation+" , message="+obj.message)
+
       if(obj.operation=="board"){
         fetchBoard(obj.message)
+      }
+      if(obj.ooperation=="notice"){
+        fetchInfo(obj.message)
       }
     }
     socket.onopen=function(e){
