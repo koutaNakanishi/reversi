@@ -38,15 +38,16 @@ func (r *room) run() {
 		case client := <-r.leave: //クライアントが体質した時
 			delete(r.clients, client)
 			close(client.send)
-		case msg := <-r.forward:
-			for client := range r.clients {
-				select {
-				case client.send <- ([]byte)(msg.CreateMessage()):
-				default:
-					delete(r.clients, client)
-					close(client.send)
-				}
-			}
+		case msg := <-r.forward: //誰からのメッセージが来た時
+			/*
+				for client := range r.clients {
+					select {
+					case client.send <- ([]byte)(msg.CreateMessage()):
+					default:
+						delete(r.clients, client)
+						close(client.send)
+					}
+				}*/
 		}
 	}
 }

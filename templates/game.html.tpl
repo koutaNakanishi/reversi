@@ -62,6 +62,12 @@ $(function(){
     if(in_room==false){
       socket = new WebSocket(room_url);
       console.log("新しい接続:"+room_url)
+      socket.send('{"operation":"require","msg","hoge"}')
+    }
+
+    socket.onmessage=function(e){
+      //console.log(e.data)
+      var obj=JSON.parse(e.data);//送られてきたJSONを受け取る
     }
     socket.onopen=function(e){
       in_room=true;
