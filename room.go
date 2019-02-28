@@ -15,6 +15,7 @@ type room struct {
 	join    chan *client     //入室してきたクライアント
 	leave   chan *client     //体質していくクライアント
 	clients map[*client]bool //入室しているクライアント一覧
+	game    *Game            //ゲームの今の状況
 }
 
 func (r *room) GetRoomNum() int {
@@ -26,6 +27,7 @@ func newRoom() *room {
 		join:    make(chan *client),
 		leave:   make(chan *client),
 		clients: make(map[*client]bool),
+		game:    NewGame(),
 	}
 }
 
