@@ -47,9 +47,9 @@ func (c *client) read() {
 				canPut := c.room.game.PutStone(c, x, y)
 				fmt.Println("canput:", canPut)
 				if canPut == false {
-					c.WriteNotice("you")
+					//c.WriteNotice("you")
 				} else {
-					c.WriteRequire() //盤面を教えてあげる
+					//c.WriteRequire() //盤面を教えてあげる
 				}
 			}
 		} else {

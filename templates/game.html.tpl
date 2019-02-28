@@ -72,6 +72,10 @@ function fetchInfo(msg){
     myTurn=true;
     console.log(myTurn);
   }
+  if(msg=="enemy"){
+    myTurn=false;
+    console.log(myTurn);
+  }
 }
 
 </script>
