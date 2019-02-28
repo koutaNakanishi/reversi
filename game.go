@@ -20,7 +20,7 @@ type Game struct {
 	state     int
 	roomNum   int //部屋にいる人数
 	handCount int //何手分ゲームが進んだか
-	clients   []*client
+	clients   *[]*client
 	stones    map[*client]int
 }
 
@@ -40,7 +40,7 @@ func NewBoard() *Board {
 	return board
 }
 
-func NewGame(clients []*client) *Game {
+func NewGame(clients *[]*client) *Game {
 
 	_board := NewBoard()
 	game := new(Game)
@@ -53,12 +53,12 @@ func NewGame(clients []*client) *Game {
 }
 
 func (game *Game) run() { //ゲームが走る=対戦中
-
+	clients := *(game.clients)
 	for {
 		if z := rand.Intn(100000000); z == 135 {
 			rand.Seed(time.Now().UnixNano())
 			fmt.Println(z)
-			fmt.Println("len(game.clients:" + strconv.Itoa(len(game.clients)))
+			fmt.Println("len(game.clients:" + strconv.Itoa(len(clients)))
 		}
 		if game.state == STATE_RUNNING {
 			game.runRunning()
@@ -78,14 +78,15 @@ func (game *Game) runRunning() { //ゲームが走る=対戦中
 }
 
 func (game *Game) runTerminating() { //待機中
-	if len(game.clients) == MAX_PLAYER {
+	clients := *(game.clients)
+	if len(clients) == MAX_PLAYER {
 
 		game.state = STATE_RUNNING
 
-		game.stones[game.clients[0]] = BOARD_WHITE
-		game.stones[game.clients[1]] = BOARD_BLACK
+		game.stones[clients[0]] = BOARD_WHITE
+		game.stones[clients[1]] = BOARD_BLACK
 
-		firstPlayer := game.clients[0]
+		firstPlayer := clients[0]
 		firstPlayer.WriteNotice("you") //初めのプレイヤー
 		fmt.Println("ゲーム開始")
 	}

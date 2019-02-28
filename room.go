@@ -29,7 +29,7 @@ func newRoom() *room {
 		leave:      make(chan *client),
 		clientsMap: make(map[*client]bool),
 	}
-	ret.game = NewGame(ret.clients)
+	ret.game = NewGame(&ret.clients)
 	return ret
 }
 
