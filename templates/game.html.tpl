@@ -8,6 +8,8 @@
       board.src = "http://localhost:8081/templates/board.png";  //写真のパスを指定する
       black.src = "http://localhost:8081/templates/black.png";
       white.src = "http://localhost:8081/templates/white.png";
+      var maxX=8;
+      var maxY=8;
     </script>
  </head>
 
@@ -31,8 +33,8 @@ function draw1(){
   var ctx = document.getElementById("cv1").getContext("2d");
   var boardX=100,boardY=100;
   var komaX=100,komaY=100;
-  for(var y=0;y<8;y++){
-    for(var x=0;x<8;x++){
+  for(var y=0;y<maxY;y++){
+    for(var x=0;x<maxX;x++){
       ctx.drawImage(board,x*boardX,y*boardY);
     }
   }
@@ -43,7 +45,20 @@ function draw1(){
 }
 </script>
 
-
+<script>
+func fecthBoard(str){
+  for(var y=0;y<maxY;y++){
+    for(var x=0;x<maxX;x++){
+      var now=board[y*maxY+x];
+      if(now=="1"){
+        ctx.drawImage(black,boardX*x,boardY*y);
+      }else if(now=="2"){
+        ctx.drawImage(white,boardX*x,boardY*y);
+      }
+    }
+  }
+}
+</script>
 
 <script>
 var in_room=false;
@@ -62,12 +77,16 @@ $(function(){
     if(in_room==false){
       socket = new WebSocket(room_url);
       console.log("新しい接続:"+room_url)
-      socket.send('{"operation":"require","msg","hoge"}')
+      socket.send('{"operation":"require","message","hoge"}')
     }
 
     socket.onmessage=function(e){
       //console.log(e.data)
       var obj=JSON.parse(e.data);//送られてきたJSONを受け取る
+      console.log("operation="+obj.operation+"message="+obj.message)
+      if(obj.operation=="board"){
+        fetchBoard(obj.message)
+      }
     }
     socket.onopen=function(e){
       in_room=true;
