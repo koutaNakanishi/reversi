@@ -36,10 +36,11 @@ func (r *room) run() {
 		select {
 		case client := <-r.join: //クライアントが入室してきた時
 			r.clients[client] = true //mapにクライアントを追加
-
+			r.game.roomNum++
 		case client := <-r.leave: //クライアントが体質した時
 			delete(r.clients, client)
 			close(client.send)
+			r.game.roomNum--
 		case msg := <-r.forward: //誰からのメッセージが来た時
 			fmt.Println(msg)
 			/*

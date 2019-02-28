@@ -29,27 +29,27 @@
 
 <script>
 //描画系
+var ctx = document.getElementById("cv1").getContext("2d");
+var canvas=document.getElementById("cv1");
+var boardX=100,boardY=100;
+var stoneX=100,stoneY=100;
+var myStone=0;
 function draw1(){
-  var ctx = document.getElementById("cv1").getContext("2d");
-  var boardX=100,boardY=100;
-  var komaX=100,komaY=100;
+
   for(var y=0;y<maxY;y++){
     for(var x=0;x<maxX;x++){
       ctx.drawImage(board,x*boardX,y*boardY);
     }
   }
-  ctx.drawImage(white,boardX*3,boardY*3);
-  ctx.drawImage(white,boardX*4,boardY*4);
-  ctx.drawImage(black,boardX*4,boardY*3);
-  ctx.drawImage(black,boardX*3,boardY*4);
 }
 </script>
 
 <script>
-func fecthBoard(str){
+function fetchBoard(board){
   for(var y=0;y<maxY;y++){
     for(var x=0;x<maxX;x++){
       var now=board[y*maxY+x];
+      //console.log(now);
       if(now=="1"){
         ctx.drawImage(black,boardX*x,boardY*y);
       }else if(now=="2"){
@@ -58,6 +58,18 @@ func fecthBoard(str){
     }
   }
 }
+
+</script>
+
+<script>
+//canvasがクリックされた時
+function onDown(e){
+  var x = e.clientX - canvas.offsetLeft;
+  var y = e.clientY - canvas.offsetTop;
+  console.log("x:", x, "y:", y);
+}
+
+canvas.addEventListener("mousedown",onDown,false);
 </script>
 
 <script>
@@ -77,19 +89,22 @@ $(function(){
     if(in_room==false){
       socket = new WebSocket(room_url);
       console.log("新しい接続:"+room_url)
-      socket.send('{"operation":"require","message","hoge"}')
+
     }
 
     socket.onmessage=function(e){
       //console.log(e.data)
       var obj=JSON.parse(e.data);//送られてきたJSONを受け取る
-      console.log("operation="+obj.operation+"message="+obj.message)
+      console.log("operation="+obj.operation+" , message="+obj.message)
       if(obj.operation=="board"){
         fetchBoard(obj.message)
       }
     }
     socket.onopen=function(e){
       in_room=true;
+      var obj;
+
+      socket.send('{"operation":"require","message":"hoge"}')//wsが繋がった時まず盤面をとってくる
     }
     socket.onclose=function(e){
       in_room=false;

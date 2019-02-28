@@ -46,7 +46,7 @@ func (c *client) read() {
 }
 
 func writeRequire(c *client) {
-	sendMessageInfo := MessageInfo{Operation: "boad", Msg: c.room.game.GetBoardStr()}
+	sendMessageInfo := MessageInfo{Operation: "board", Msg: c.room.game.GetBoardStr()}
 	sendJSON, err := json.Marshal(sendMessageInfo)
 	if err != nil {
 		fmt.Println("JSON MARCHAL ERR:", err)
