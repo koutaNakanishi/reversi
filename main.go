@@ -68,6 +68,7 @@ func CreateRoomsHTTPHandle() {
 func RunRooms() {
 	for i := 0; i < MAX_ROOM_NUM; i++ {
 		go rooms[i].run()
+		go rooms[i].game.run()
 	}
 }
 func main() {

@@ -44,7 +44,13 @@ func (c *client) read() {
 				x, _ := strconv.Atoi(string(messageInfo.Msg[0]))
 				y, _ := strconv.Atoi(string(messageInfo.Msg[1]))
 				fmt.Println(x + y)
-				c.room.game.PutStone(c, x, y)
+				canPut := c.room.game.PutStone(c, x, y)
+				fmt.Println("canput:", canPut)
+				if canPut == false {
+					c.WriteNotice("you")
+				} else {
+					c.WriteRequire() //盤面を教えてあげる
+				}
 			}
 		} else {
 			break
@@ -65,7 +71,7 @@ func (c *client) WriteRequire() {
 }
 
 func (c *client) WriteNotice(msg string) {
-	sendMessageInfo := MessageInfo{Operation: "put", Msg: msg}
+	sendMessageInfo := MessageInfo{Operation: "notice", Msg: msg}
 	sendJSON, err := json.Marshal(sendMessageInfo)
 	if err != nil {
 		fmt.Println("JSON MARCHAL ERR:", err)

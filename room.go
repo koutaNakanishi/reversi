@@ -94,7 +94,7 @@ func (r *room) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		r.leave <- client
 		fmt.Println("leave room")
 	}()
-	go r.game.run()
+
 	go client.write()
 	client.read()
 }

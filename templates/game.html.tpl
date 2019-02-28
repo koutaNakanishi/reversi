@@ -50,6 +50,7 @@ function draw1(){
 
 function sendMessageInfo(operation,message){
   sendJSON=JSON.stringify({"operation":operation,"message":message});
+  console.log(socket);
   socket.send(sendJSON);
 }
 function fetchBoard(board){
@@ -69,6 +70,7 @@ function fetchBoard(board){
 function fetchInfo(msg){
   if(msg=="you"){
     myTurn=true;
+    console.log(myTurn);
   }
 }
 
@@ -79,9 +81,9 @@ function fetchInfo(msg){
 function onDown(e){
   var x = e.clientX - canvas.offsetLeft;
   var y = e.clientY - canvas.offsetTop;
-  console.log("x:", x, "y:", y);
+  console.log("x:", x, "y:", y,"myturn",myTurn);
   if(myTurn){
-    sendMessageInfo("put",String(x/8)+String(y/8));//クライアントは打つ位置だけ知らせる
+    sendMessageInfo("put",String(Math.floor(x/boardX))+String(Math.floor(y/boardY)));//クライアントは打つ位置だけ知らせる
   }
 }
 
@@ -116,7 +118,7 @@ $(function(){
       if(obj.operation=="board"){
         fetchBoard(obj.message)
       }
-      if(obj.ooperation=="notice"){
+      if(obj.operation=="notice"){
         fetchInfo(obj.message)
       }
     }
