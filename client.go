@@ -14,17 +14,17 @@ type client struct {
 }
 
 type MessageInfo struct { //クライアントから送られてくるメッセージ
-	Name string `json:"name"`
-	Msg  string `json:"message"`
+	Operation string `json:"operation"`
+	Msg       string `json:"message"`
 }
 
-func (messageInfo *MessageInfo) CreateMessage() string { //各クライアントのブラウザに表示されるテキスト
-	ret := messageInfo.Name + ":" + messageInfo.Msg
-	return ret
-}
+//func (messageInfo *MessageInfo) CreateMessage() string { //各クライアントのブラウザに表示されるテキスト
+//	ret := messageInfo.Name + ":" + messageInfo.Msg
+//	return ret
+//}
 
 func (c *client) read() {
-	messageInfo := MessageInfo{Msg: "tmp", Name: "名無し"}
+	messageInfo := MessageInfo{Operation: "tmp", Msg: "名無し"}
 	for {
 		if _, msg, err := c.socket.ReadMessage(); err == nil {
 			if string(msg) == "" {
@@ -34,13 +34,26 @@ func (c *client) read() {
 			if err := json.Unmarshal(msg, &messageInfo); err != nil {
 				fmt.Println("JSON UNMARSHAL ERROR:", err)
 			}
-			c.room.forward <- messageInfo //クライアントから受け取ったメッセージを送信
+			//c.room.forward <- messageInfo //クライアントから受け取ったメッセージを送信
+			if messageInfo.Operation == "require" {
+				writeRequire(c) //要はクライアントにrequireの要求結果を送信する
+			}
 		} else {
-			fmt.Println("READJSON:", err)
 			break
 		}
 	}
 	c.socket.Close()
+}
+
+func writeRequire(c *client) {
+	sendMessageInfo := MessageInfo{Operation: "boad", Msg: c.room.game.GetBoardStr()}
+	sendJSON, err := json.Marshal(sendMessageInfo)
+	if err != nil {
+		fmt.Println("JSON MARCHAL ERR:", err)
+	}
+	if err := c.socket.WriteMessage(websocket.TextMessage, sendJSON); err != nil {
+		fmt.Println("ERROR IN writeRequire")
+	}
 }
 
 func (c *client) write() {

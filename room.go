@@ -41,6 +41,7 @@ func (r *room) run() {
 			delete(r.clients, client)
 			close(client.send)
 		case msg := <-r.forward: //誰からのメッセージが来た時
+			fmt.Println(msg)
 			/*
 				for client := range r.clients {
 					select {

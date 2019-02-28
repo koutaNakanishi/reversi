@@ -5,9 +5,12 @@ import "strconv"
 const BOARD_EMPTY = 0
 const BOARD_BLACK = 1
 const BOARD_WHITE = 2
+const STATE_TERMINATING = 1000
+const STATE_RUNNING = 1001
 
 type Game struct {
 	board *Board
+	state int
 }
 
 type Board struct {
@@ -27,10 +30,18 @@ func NewBoard() *Board {
 }
 
 func NewGame() *Game {
+
 	_board := NewBoard()
 	game := new(Game)
 	game.board = _board
+
+	game.state = STATE_TERMINATING //始めはゲームが始まっていない
+
 	return game
+}
+
+func (game *Game) run() { //ゲームが走る=対戦中
+
 }
 
 func (board *Board) PutStone(stone, x, y int) bool { //おけたらtrue、置けなかったfalse
@@ -57,11 +68,11 @@ func (board *Board) PutStone(stone, x, y int) bool { //おけたらtrue、置け
 	return canPut
 }
 
-func (board *Board) GetBoardStr() string {
+func (game *Game) GetBoardStr() string {
 	ret := ""
-	for y := 0; y < board.y; y++ {
-		for x := 0; x < board.x; x++ {
-			ret += strconv.Itoa(board.ban[y][x])
+	for y := 0; y < game.board.y; y++ {
+		for x := 0; x < game.board.x; x++ {
+			ret += strconv.Itoa(game.board.ban[y][x])
 		}
 	}
 	return ret
