@@ -10,7 +10,7 @@ import (
 	"sync"
 )
 
-const WS_ADRESS = "ws://localhost:8081" //本番かローカルかで使い分けよう
+const WS_ADRESS = "ws://localhost:8081" //TODO 本番かローカルかで使い分けよう
 type templateHandler struct {
 	once     sync.Once
 	filename string
@@ -32,7 +32,7 @@ func CreateOrJoinRoomHandler(w http.ResponseWriter, r *http.Request) { // /creat
 	will_join_room := -1
 	for i, room := range rooms {
 		if room.GetRoomNum() == 0 {
-			will_join_room = i
+			will_join_room = i //TODO ここは部屋の作成にするべき?
 			break
 		} else if room.GetRoomNum() < MAX_CONNECTION_PER_ROOM {
 			will_join_room = i
@@ -73,10 +73,12 @@ func RunRooms() {
 }
 func main() {
 	//r := newRoom()
+	fmt.Println("Start the ChatService")
 	CreateRooms()
 	http.Handle("/", &templateHandler{filename: "loby.html"})
 	http.Handle("/game", &templateHandler{filename: "game.html.tpl"})
 	http.Handle("/templates/", http.FileServer(http.Dir("./")))
+	fmt.Println("Start the ChatService")
 	//http.Handle("/room", r)
 	CreateRoomsHTTPHandle()
 	http.HandleFunc("/createOrJoinRoom", CreateOrJoinRoomHandler)

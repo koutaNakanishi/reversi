@@ -79,6 +79,7 @@ function fetchInfo(msg){
   }
   if(msg=="finish"){
     alert("試合終了です。")
+    socket.close();
   }
 }
 

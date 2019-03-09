@@ -23,7 +23,7 @@ type Game struct {
 	nextPlayer *client
 	clients    *[]*client
 	stones     map[*client]int
-	room       *room
+	gameState  *chan int
 }
 
 type Board struct {
@@ -42,7 +42,7 @@ func NewBoard() *Board {
 	return board
 }
 
-func NewGame(clients *[]*client) *Game {
+func NewGame(c *chan int, clients *[]*client) *Game {
 
 	_board := NewBoard()
 	game := new(Game)
@@ -51,8 +51,9 @@ func NewGame(clients *[]*client) *Game {
 	game.handCount = 0
 	game.stones = make(map[*client]int)
 	game.clients = clients
-
+	game.gameState = c
 	game.setState(STATE_MATCHING)
+
 	return game
 }
 
@@ -94,7 +95,7 @@ func (game *Game) GetState() int {
 	return game.state
 }
 
-func (game *Game) runMatching() { //待機中(マッチング中とも癒える)
+func (game *Game) runMatching() { //待機中(マッチング中ともいえる)
 	clients := *(game.clients)
 	if len(clients) == MAX_PLAYER {
 
@@ -114,6 +115,7 @@ func (game *Game) runMatching() { //待機中(マッチング中とも癒える)
 }
 
 func (game *Game) setState(state int) {
+	*game.gameState <- state
 	game.state = state
 }
 

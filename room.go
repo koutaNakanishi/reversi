@@ -14,6 +14,7 @@ type room struct {
 	forward    chan MessageInfo //誰かが送信したメッセージ
 	join       chan *client     //入室してきたクライアント
 	leave      chan *client     //体質していくクライアント
+	gameState  chan int
 	clientsMap map[*client]bool //入室しているクライアント一覧
 	clients    []*client        //部屋に居る人達のスライス
 	game       *Game            //ゲームの今の状況
@@ -23,18 +24,20 @@ func (r *room) GetRoomNum() int {
 	return len(r.clientsMap)
 }
 func newRoom() *room {
+	fmt.Println("OK")
 	ret := &room{
 		forward:    make(chan MessageInfo),
 		join:       make(chan *client),
 		leave:      make(chan *client),
+		gameState:  make(chan int, 100),
 		clientsMap: make(map[*client]bool),
 	}
-	ret.game = NewGame(&ret.clients)
+	ret.game = NewGame(&ret.gameState, &ret.clients)
 	return ret
 }
 
 func (r *room) run() {
-	go checkGameState(r)
+	//go checkGameState(r)
 	for {
 		select {
 		case client := <-r.join: //クライアントが入室してきた時
@@ -45,6 +48,8 @@ func (r *room) run() {
 			delete(r.clientsMap, client)
 			r.clients = remove(r.clients, client) //消す
 			close(client.send)
+		case state := <-r.gameState:
+			checkGameState(state, r)
 
 		case msg := <-r.forward: //誰からのメッセージが来た時
 			fmt.Println(msg)
@@ -53,15 +58,16 @@ func (r *room) run() {
 
 	}
 }
-func checkGameState(r *room) {
-	for {
-		//fmt.Println(r.game.GetState())
-		if r.game.GetState() == STATE_FINISHED {
-			for _, c := range r.clients { //TODO ゲーム終了時の実際の部屋やgameオブジェクトの処理はroom.goで
-				c.WriteMessageInfo("notice", "finish")
-			}
+func checkGameState(state int, r *room) {
+	//fmt.Println(r.game.GetState())
+	if state == STATE_FINISHED {
+		for _, c := range r.clients { //TODO ゲーム終了時の実際の部屋やgameオブジェクトの処理はroom.goで
+			c.WriteMessageInfo("notice", "finish")
+			fmt.Println("RESET THE GAME")
+			r = newRoom()
 		}
 	}
+
 }
 
 const (
