@@ -48,6 +48,7 @@ function draw1(){
 
 <script>
 
+
 function sendMessageInfo(operation,message){
   sendJSON=JSON.stringify({"operation":operation,"message":message});
   console.log(socket);
@@ -76,11 +77,25 @@ function fetchInfo(msg){
     myTurn=false;
     console.log(myTurn);
   }
+  if(msg=="finish"){
+    alert("試合終了です。")
+  }
 }
 
 </script>
 
 <script>
+$(function(){
+
+  $("#backButton").on('click',function(){
+    console.log("backButton")
+    setTimeout(function(){
+      window.location.href = '/';
+    }, 1000);
+  })});
+</script>
+<script>
+
 //canvasがクリックされた時
 function onDown(e){
   var x = e.clientX - canvas.offsetLeft;
@@ -94,53 +109,7 @@ function onDown(e){
 canvas.addEventListener("mousedown",onDown,false);
 </script>
 
-<script>
-var in_room=false;
+<script type="text/javascript" src="http://localhost:8081/templates/contactToServer.js"></script>
 
-$(function(){
-
-  $("#backButton").on('click',function(){
-    console.log("backButton")
-    setTimeout(function(){
-      window.location.href = '/';
-    }, 1000);
-  });
-
-  $.get("http://localhost:8081/createOrJoinRoom",function(data){
-    room_url=data;
-    if(in_room==false){
-      socket = new WebSocket(room_url);
-      console.log("新しい接続:"+room_url)
-
-    }
-
-    socket.onmessage=function(e){
-      //console.log(e.data)
-      var obj=JSON.parse(e.data);//送られてきたJSONを受け取る
-      console.log("operation="+obj.operation+" , message="+obj.message)
-
-      if(obj.operation=="board"){
-        fetchBoard(obj.message)
-      }
-      if(obj.operation=="notice"){
-        fetchInfo(obj.message)
-      }
-    }
-    socket.onopen=function(e){
-      in_room=true;
-      var obj;
-
-      socket.send('{"operation":"require","message":"hoge"}')//wsが繋がった時まず盤面をとってくる
-    }
-    socket.onclose=function(e){
-      in_room=false;
-    }
-    socket.onerror=function(e){
-      alert("err"+e)
-    }
-  });
-
-});
-</script>
  </body>
 </html>

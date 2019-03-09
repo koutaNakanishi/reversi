@@ -34,6 +34,7 @@ func newRoom() *room {
 }
 
 func (r *room) run() {
+	go checkGameState(r)
 	for {
 		select {
 		case client := <-r.join: //クライアントが入室してきた時
@@ -47,15 +48,18 @@ func (r *room) run() {
 
 		case msg := <-r.forward: //誰からのメッセージが来た時
 			fmt.Println(msg)
-			/*
-				for client := range r.clientsMap {
-					select {
-					case client.send <- ([]byte)(msg.CreateMessage()):
-					default:
-						delete(r.clientsMap, client)
-						close(client.send)
-					}
-				}*/
+
+		}
+
+	}
+}
+func checkGameState(r *room) {
+	for {
+		//fmt.Println(r.game.GetState())
+		if r.game.GetState() == STATE_FINISHED {
+			for _, c := range r.clients { //TODO ゲーム終了時の実際の部屋やgameオブジェクトの処理はroom.goで
+				c.WriteMessageInfo("notice", "finish")
+			}
 		}
 	}
 }

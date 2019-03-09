@@ -8,9 +8,10 @@ import (
 const BOARD_EMPTY = 0
 const BOARD_BLACK = 1
 const BOARD_WHITE = 2
-const STATE_TERMINATING = 1000
+const STATE_MATCHING = 1000
+const STATE_PAUSING = 1003
 const STATE_RUNNING = 1001
-const STATE_STARTING = 1002
+const STATE_FINISHED = 1002
 const MAX_PLAYER = 2
 
 type Game struct {
@@ -22,6 +23,7 @@ type Game struct {
 	nextPlayer *client
 	clients    *[]*client
 	stones     map[*client]int
+	room       *room
 }
 
 type Board struct {
@@ -46,10 +48,11 @@ func NewGame(clients *[]*client) *Game {
 	game := new(Game)
 	game.board = _board
 	game.roomNum = 0
-	game.state = STATE_TERMINATING //始めはゲームが始まっていない
 	game.handCount = 0
 	game.stones = make(map[*client]int)
 	game.clients = clients
+
+	game.setState(STATE_MATCHING)
 	return game
 }
 
@@ -58,12 +61,15 @@ func (game *Game) run() { //ゲームが走る=対戦中
 	clients := *(game.clients)
 	fmt.Println("len(game.clients:" + strconv.Itoa(len(clients)))
 	for {
-		if game.state == STATE_RUNNING {
+		if game.state == STATE_MATCHING {
+			game.runMatching()
+		} else if game.state == STATE_RUNNING {
 			game.runRunning()
-		} else if game.state == STATE_STARTING { //書記処理
-
-		} else if game.state == STATE_TERMINATING {
-			game.runTerminating()
+		} else if game.state == STATE_PAUSING {
+			game.runPausing()
+		} else if game.state == STATE_FINISHED {
+			fmt.Println("FINISH THE GAME")
+			return
 		}
 	}
 }
@@ -74,22 +80,45 @@ func (game *Game) runRunning() { //ゲームが走る=対戦中
 		fmt.Println("ゲームを続行できません")
 		panic(len(clients))
 	}
+
+	if game.handCount == 3 { //TODO しっかり終了時の処理をする
+
+		game.setState(STATE_FINISHED)
+		//////TODO ロジックと通信は分けたい
+		//clients[0].WriteMessageInfo("notice", "finish") //TODO 送信する部分はPutStoneの外に出すべき
+		//clients[1].WriteMessageInfo("notice", "finish")
+	}
 }
 
-func (game *Game) runTerminating() { //待機中
+func (game *Game) GetState() int {
+	return game.state
+}
+
+func (game *Game) runMatching() { //待機中(マッチング中とも癒える)
 	clients := *(game.clients)
 	if len(clients) == MAX_PLAYER {
 
-		game.state = STATE_RUNNING
+		//game.state = STATE_RUNNING
+		game.setState(STATE_RUNNING)
 		game.stones[clients[0]] = BOARD_WHITE
 		game.stones[clients[1]] = BOARD_BLACK
 
 		firstPlayer := clients[0]
 		game.nowPlayer = clients[0]
 		game.nextPlayer = clients[1]
-		firstPlayer.WriteNotice("you") //初めのプレイヤー
+		clients[0].WriteMessageInfo("board", game.GetBoardStr()) //TODO 送信する部分はPutStoneの外に出すべき
+		clients[1].WriteMessageInfo("board", game.GetBoardStr())
+		firstPlayer.WriteMessageInfo("notice", "you") //初めのプレイヤー
 		fmt.Println("ゲーム開始")
 	}
+}
+
+func (game *Game) setState(state int) {
+	game.state = state
+}
+
+func (game *Game) runPausing() {
+
 }
 
 func (game *Game) PutStone(client *client, x, y int) bool { //おけたらtrue、置けなかったfalse
@@ -123,15 +152,13 @@ func (game *Game) PutStone(client *client, x, y int) bool { //おけたらtrue�
 		fmt.Println(game.nowPlayer)
 		fmt.Println(game.nextPlayer)
 		board.ban[y][x] = stone
-		clients[0].WriteRequire() //TODO 送信する部分はPutStoneの外に出すべき
-		clients[1].WriteRequire()
+		//////TODO ロジックと通信は分けたい
+		clients[0].WriteMessageInfo("board", game.GetBoardStr()) //TODO 送信する部分はPutStoneの外に出すべき
+		clients[1].WriteMessageInfo("board", game.GetBoardStr())
 		game.handCount++
-		game.nowPlayer.WriteNotice("enemy")
-		game.nextPlayer.WriteNotice("you")
+		game.nowPlayer.WriteMessageInfo("notice", "enemy")
+		game.nextPlayer.WriteMessageInfo("notice", "you")
 		game.nextPlayer, game.nowPlayer = game.nowPlayer, game.nextPlayer
-		//tmp := game.nextPlayer
-		//game.nextPlayer = game.nowPlayer
-		//game.nowPlayer = tmp
 	}
 	return canPut
 }

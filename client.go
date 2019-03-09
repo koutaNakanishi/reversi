@@ -37,20 +37,11 @@ func (c *client) read() {
 			}
 			//c.room.forward <- messageInfo //クライアントから受け取ったメッセージを送信
 			if messageInfo.Operation == "require" {
-				c.WriteRequire() //要はクライアントにrequireの要求結果を送信する
+				c.require()
+
 			}
 			if messageInfo.Operation == "put" {
-
-				x, _ := strconv.Atoi(string(messageInfo.Msg[0]))
-				y, _ := strconv.Atoi(string(messageInfo.Msg[1]))
-				fmt.Println(x + y)
-				canPut := c.room.game.PutStone(c, x, y)
-				fmt.Println("canput:", canPut)
-				if canPut == false {
-					//c.WriteNotice("you")
-				} else {
-					//c.WriteRequire() //盤面を教えてあげる
-				}
+				c.put(messageInfo)
 			}
 		} else {
 			break
@@ -59,19 +50,21 @@ func (c *client) read() {
 	c.socket.Close()
 }
 
-func (c *client) WriteRequire() {
-	sendMessageInfo := MessageInfo{Operation: "board", Msg: c.room.game.GetBoardStr()}
-	sendJSON, err := json.Marshal(sendMessageInfo)
-	if err != nil {
-		fmt.Println("JSON MARCHAL ERR:", err)
-	}
-	if err := c.socket.WriteMessage(websocket.TextMessage, sendJSON); err != nil {
-		fmt.Println("ERROR IN writeRequire")
-	}
+func (c *client) require() {
+	c.WriteMessageInfo("require", c.room.game.GetBoardStr()) //要はクライアントにrequireの要求結果を送信する
 }
 
-func (c *client) WriteNotice(msg string) {
-	sendMessageInfo := MessageInfo{Operation: "notice", Msg: msg}
+func (c *client) put(messageInfo MessageInfo) {
+	x, _ := strconv.Atoi(string(messageInfo.Msg[0]))
+	y, _ := strconv.Atoi(string(messageInfo.Msg[1]))
+	fmt.Println(x + y)
+	canPut := c.room.game.PutStone(c, x, y)
+	fmt.Println("canput:", canPut)
+
+}
+
+func (c *client) WriteMessageInfo(operation, msg string) {
+	sendMessageInfo := MessageInfo{Operation: operation, Msg: msg}
 	sendJSON, err := json.Marshal(sendMessageInfo)
 	if err != nil {
 		fmt.Println("JSON MARCHAL ERR:", err)
