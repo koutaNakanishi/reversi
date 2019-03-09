@@ -97,6 +97,9 @@ func (game *Game) GetState() int {
 
 func (game *Game) runMatching() { //待機中(マッチング中ともいえる)
 	clients := *(game.clients)
+	//if rand.Intn(10000) == 1 {
+	//	fmt.Println("runMathing")
+	//}
 	if len(clients) == MAX_PLAYER {
 
 		//game.state = STATE_RUNNING

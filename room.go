@@ -46,7 +46,6 @@ func (r *room) run() {
 			fmt.Println("room.r.client.len", len(r.clients))
 		case client := <-r.leave: //クライアントが体質した時
 			delete(r.clientsMap, client)
-			r.clients = remove(r.clients, client) //消す
 			close(client.send)
 		case state := <-r.gameState:
 			checkGameState(state, r)
@@ -63,9 +62,12 @@ func checkGameState(state int, r *room) {
 	if state == STATE_FINISHED {
 		for _, c := range r.clients { //TODO ゲーム終了時の実際の部屋やgameオブジェクトの処理はroom.goで
 			c.WriteMessageInfo("notice", "finish")
+			c.socket.Close()
 			fmt.Println("RESET THE GAME")
-			r = newRoom()
 		}
+		fmt.Println(r.game, r.game.state)
+		r.game = NewGame(&r.gameState, &r.clients)
+		fmt.Println(r.game, r.game.state)
 	}
 
 }
