@@ -10,50 +10,48 @@ import (
 
 const MAX_CONNECTION_PER_ROOM = 2 //1部屋に繋げる最大の人数
 const MAX_ROOM_NUM = 10           //最大のサーバ全体の部屋の数
-type room struct {
-	forward chan MessageInfo //誰かが送信したメッセージ
-	join    chan *client     //入室してきたクライアント
-	leave   chan *client     //体質していくクライアント
-	clients map[*client]bool //入室しているクライアント一覧
-	game    *Game            //ゲームの今の状況
-}
 
 func (r *room) GetRoomNum() int {
 	return len(r.clients)
 }
-func newRoom() *room {
-	return &room{
-		forward: make(chan MessageInfo),
-		join:    make(chan *client),
-		leave:   make(chan *client),
-		clients: make(map[*client]bool),
-		game:    NewGame(),
-	}
-}
 
 func (r *room) run() {
+
 	for {
 		select {
 		case client := <-r.join: //クライアントが入室してきた時
-			r.clients[client] = true //mapにクライアントを追加
-			r.game.roomNum++
+			r.clientsMap[client] = true //mapにクライアントを追加
+			r.clients = append(r.clients, client)
+			fmt.Printf("join in room %v. now clients %v\n", r.room_id, len(r.clients))
 		case client := <-r.leave: //クライアントが体質した時
-			delete(r.clients, client)
+			delete(r.clientsMap, client)
+			r.clients = removeClient(r.clients, client)
 			close(client.send)
-			r.game.roomNum--
+			fmt.Printf("left in room %v. now clients %v\n", r.room_id, len(r.clients))
+		case state := <-r.gameState:
+			checkGameState(state, r)
+
 		case msg := <-r.forward: //誰からのメッセージが来た時
 			fmt.Println(msg)
-			/*
-				for client := range r.clients {
-					select {
-					case client.send <- ([]byte)(msg.CreateMessage()):
-					default:
-						delete(r.clients, client)
-						close(client.send)
-					}
-				}*/
+
 		}
+
 	}
+}
+func checkGameState(state int, r *room) {
+
+	if state == STATE_FINISHED {
+		//ここでゲーム終了処理
+		fmt.Println("RESET THE GAME")
+		for _, c := range r.clients { //TODO ゲーム終了時の実際の部屋やgameオブジェクトの処理はroom.goで
+			c.WriteMessageInfo("notice", "finish")
+			c.socket.Close()
+
+		}
+		rooms = removeRoom(rooms, r)
+
+	}
+
 }
 
 const (
@@ -68,14 +66,14 @@ var upgrader = &websocket.Upgrader{ReadBufferSize: socketBufferSize, WriteBuffer
 }
 
 func (r *room) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+
 	socket, err := upgrader.Upgrade(w, req, nil)
 	if err != nil {
 		log.Fatal("ServeHTTP:", err)
 		return
 	}
 
-	fmt.Println("len(r.clients)=", len(r.clients))
-	if len(r.clients) >= MAX_CONNECTION_PER_ROOM {
+	if len(r.clientsMap) >= MAX_CONNECTION_PER_ROOM {
 		fmt.Println("Can't connect this room")
 		return
 	}
@@ -88,8 +86,8 @@ func (r *room) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	r.join <- client
 	defer func() {
 		r.leave <- client
-		fmt.Println("leave room")
 	}()
+
 	go client.write()
 	client.read()
 }

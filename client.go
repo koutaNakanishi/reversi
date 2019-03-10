@@ -3,57 +3,29 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/gorilla/websocket"
 )
-
-type client struct {
-	socket *websocket.Conn
-	send   chan []byte
-	room   *room
-}
-
-type MessageInfo struct { //クライアントから送られてくるメッセージ
-	Operation string `json:"operation"`
-	Msg       string `json:"message"`
-}
-
-//func (messageInfo *MessageInfo) CreateMessage() string { //各クライアントのブラウザに表示されるテキスト
-//	ret := messageInfo.Name + ":" + messageInfo.Msg
-//	return ret
-//}
 
 func (c *client) read() {
 	messageInfo := MessageInfo{Operation: "tmp", Msg: "名無し"}
 	for {
 		if _, msg, err := c.socket.ReadMessage(); err == nil {
-			if string(msg) == "" {
-				continue
-			}
+
 			fmt.Println(string(msg))
 			if err := json.Unmarshal(msg, &messageInfo); err != nil {
 				fmt.Println("JSON UNMARSHAL ERROR:", err)
-			}
-			//c.room.forward <- messageInfo //クライアントから受け取ったメッセージを送信
-			if messageInfo.Operation == "require" {
-				writeRequire(c) //要はクライアントにrequireの要求結果を送信する
+			} else if messageInfo.Operation == "require" {
+				c.require()
+			} else if messageInfo.Operation == "put" {
+				c.put(messageInfo)
 			}
 		} else {
 			break
 		}
 	}
 	c.socket.Close()
-}
-
-func writeRequire(c *client) {
-	sendMessageInfo := MessageInfo{Operation: "board", Msg: c.room.game.GetBoardStr()}
-	sendJSON, err := json.Marshal(sendMessageInfo)
-	if err != nil {
-		fmt.Println("JSON MARCHAL ERR:", err)
-	}
-	if err := c.socket.WriteMessage(websocket.TextMessage, sendJSON); err != nil {
-		fmt.Println("ERROR IN writeRequire")
-	}
 }
 
 func (c *client) write() {
@@ -64,4 +36,28 @@ func (c *client) write() {
 		}
 	}
 	c.socket.Close()
+}
+
+func (c *client) WriteMessageInfo(operation, msg string) {
+	sendMessageInfo := MessageInfo{Operation: operation, Msg: msg}
+	sendJSON, err := json.Marshal(sendMessageInfo)
+	if err != nil {
+		fmt.Println("JSON MARCHAL ERR:", err)
+	}
+	if err := c.socket.WriteMessage(websocket.TextMessage, sendJSON); err != nil {
+		fmt.Println("ERROR IN writeRequire")
+	}
+}
+
+func (c *client) require() {
+	c.WriteMessageInfo("require", c.room.game.GetBoardStr()) //要はクライアントにrequireの要求結果を送信する
+}
+
+func (c *client) put(messageInfo MessageInfo) {
+	x, _ := strconv.Atoi(string(messageInfo.Msg[0]))
+	y, _ := strconv.Atoi(string(messageInfo.Msg[1]))
+
+	canPut := c.room.game.PutStone(c, x, y)
+	fmt.Println("canput:", canPut)
+
 }
