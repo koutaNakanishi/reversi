@@ -22,17 +22,17 @@
 
    ゲーム画面
     <form id="backButton">
-       <input type="button" value="タイトルに戻る"/>
+       <input type="button" value="タイトルに戻る(負けます)"/>
   </form>
 
-
+  <div id="matchingField">
+    <img src="http://localhost:8081/templates/loading.gif">
+    マッチングチュウ....
+  </div>
 
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"> </script>
 <canvas id="cv1" width="800" height="800"></canvas>
-<div id="matchingField">
-  <img src="http://localhost:8081/templates/loading.gif">
-  マッチングチュウ....
-</div>
+
 
 
 <script>

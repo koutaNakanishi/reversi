@@ -12,19 +12,13 @@ func (c *client) read() {
 	messageInfo := MessageInfo{Operation: "tmp", Msg: "名無し"}
 	for {
 		if _, msg, err := c.socket.ReadMessage(); err == nil {
-			if string(msg) == "" {
-				continue
-			}
+
 			fmt.Println(string(msg))
 			if err := json.Unmarshal(msg, &messageInfo); err != nil {
 				fmt.Println("JSON UNMARSHAL ERROR:", err)
-			}
-			//c.room.forward <- messageInfo //クライアントから受け取ったメッセージを送信
-			if messageInfo.Operation == "require" {
+			} else if messageInfo.Operation == "require" {
 				c.require()
-
-			}
-			if messageInfo.Operation == "put" {
+			} else if messageInfo.Operation == "put" {
 				c.put(messageInfo)
 			}
 		} else {
@@ -62,7 +56,7 @@ func (c *client) require() {
 func (c *client) put(messageInfo MessageInfo) {
 	x, _ := strconv.Atoi(string(messageInfo.Msg[0]))
 	y, _ := strconv.Atoi(string(messageInfo.Msg[1]))
-	fmt.Println(x + y)
+
 	canPut := c.room.game.PutStone(c, x, y)
 	fmt.Println("canput:", canPut)
 
