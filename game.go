@@ -14,49 +14,6 @@ const STATE_RUNNING = 1001
 const STATE_FINISHED = 1002
 const MAX_PLAYER = 2
 
-type Game struct {
-	board      *Board
-	state      int
-	roomNum    int //部屋にいる人数
-	handCount  int //何手分ゲームが進んだか
-	nowPlayer  *client
-	nextPlayer *client
-	clients    *[]*client
-	stones     map[*client]int
-	gameState  *chan int
-}
-
-type Board struct {
-	x, y int
-	ban  [8][8]int
-}
-
-func NewBoard() *Board {
-	board := new(Board)
-	board.x = 8
-	board.y = 8
-	board.ban[3][3] = BOARD_WHITE
-	board.ban[4][4] = BOARD_WHITE
-	board.ban[3][4] = BOARD_BLACK
-	board.ban[4][3] = BOARD_BLACK
-	return board
-}
-
-func NewGame(c *chan int, clients *[]*client) *Game {
-
-	_board := NewBoard()
-	game := new(Game)
-	game.board = _board
-	game.roomNum = 0
-	game.handCount = 0
-	game.stones = make(map[*client]int)
-	game.clients = clients
-	game.gameState = c
-	game.setState(STATE_MATCHING)
-
-	return game
-}
-
 func (game *Game) run() { //ゲームが走る=対戦中
 
 	clients := *(game.clients)
