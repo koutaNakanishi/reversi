@@ -25,7 +25,6 @@ func (r *room) GetRoomNum() int {
 	return len(r.clients)
 }
 func newRoom(room_id_ int) *room {
-	fmt.Println("OK")
 	ret := &room{
 		room_id:    room_id_,
 		forward:    make(chan MessageInfo),
@@ -45,10 +44,12 @@ func (r *room) run() {
 		case client := <-r.join: //クライアントが入室してきた時
 			r.clientsMap[client] = true //mapにクライアントを追加
 			r.clients = append(r.clients, client)
-			fmt.Println("room.r.client.len", len(r.clients))
+			fmt.Printf("join in room %v. now clients %v\n", r.room_id, len(r.clients))
 		case client := <-r.leave: //クライアントが体質した時
 			delete(r.clientsMap, client)
+			r.clients = removeClient(r.clients, client)
 			close(client.send)
+			fmt.Printf("left in room %v. now clients %v\n", r.room_id, len(r.clients))
 		case state := <-r.gameState:
 			checkGameState(state, r)
 
@@ -63,10 +64,11 @@ func checkGameState(state int, r *room) {
 	//fmt.Println(r.game.GetState())
 	if state == STATE_FINISHED {
 		//ここでゲーム終了処理
+		fmt.Println("RESET THE GAME")
 		for _, c := range r.clients { //TODO ゲーム終了時の実際の部屋やgameオブジェクトの処理はroom.goで
 			c.WriteMessageInfo("notice", "finish")
 			c.socket.Close()
-			fmt.Println("RESET THE GAME")
+
 		}
 		rooms = removeRoom(rooms, r)
 		//fmt.Println(r.game, r.game.state)
@@ -94,7 +96,7 @@ func (r *room) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	fmt.Println("len(r.clientsMap)=", len(r.clientsMap))
+	//fmt.Println("len(r.clientsMap)=", len(r.clientsMap))
 	if len(r.clientsMap) >= MAX_CONNECTION_PER_ROOM {
 		fmt.Println("Can't connect this room")
 		return
@@ -108,7 +110,6 @@ func (r *room) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	r.join <- client
 	defer func() {
 		r.leave <- client
-		fmt.Println("leave room")
 	}()
 
 	go client.write()

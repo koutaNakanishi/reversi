@@ -41,11 +41,11 @@ func CreateOrJoinRoomHandler(w http.ResponseWriter, r *http.Request) { // /creat
 			break
 		}
 	}
-	fmt.Println("willjoinROom", will_join_room)
+	//fmt.Println("willjoinROom", will_join_room)
 	if will_join_room == -1 {
 		//rooms = append(rooms, createRoom(len(rooms)))
 		will_join_room = createRoomAndInit() // 部屋を作ってhttpHandleやgoruitineの実行などもろもろやる あと部屋番号を返す
-		fmt.Println("room拡張!今roomnum:", room_num)
+		//fmt.Println("room拡張!今roomnum:", room_num)
 	}
 
 	fmt.Fprintf(w, CreatewsAdress(will_join_room))
@@ -105,18 +105,15 @@ func test() {
 func main() {
 	//r := newRoom()
 	go test()
-	fmt.Println("Start the ChatService")
 	//CreateRooms()
 	http.Handle("/", &templateHandler{filename: "loby.html"})
 	http.Handle("/game", &templateHandler{filename: "game.html.tpl"})
 	http.Handle("/templates/", http.FileServer(http.Dir("./")))
-	fmt.Println("Start the ChatService")
 	//http.Handle("/room", r)
 	//CreateRoomsHTTPHandle()
 	http.HandleFunc("/createOrJoinRoom", CreateOrJoinRoomHandler)
 	//go r.run()
 	//RunRooms()
-	fmt.Println("Start the ChatService")
 	if err := http.ListenAndServe(":8081", nil); err != nil {
 		log.Fatal("ListenAndServe:", err)
 	}

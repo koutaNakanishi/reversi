@@ -12,8 +12,12 @@ $.get("http://localhost:8081/createOrJoinRoom",function(data){
     var obj=JSON.parse(e.data);//送られてきたJSONを受け取る
     console.log("operation="+obj.operation+" , message="+obj.message)
 
-    if(obj.operation=="board"){
-      fetchBoard(obj.message)
+    if(obj.operation=="board"){//ゲーム開始
+      console.log("onboard")
+      drawDefault();
+      fetchBoard(obj.message);
+      document.getElementById("matchingField").style.display="none";
+
     }
     if(obj.operation=="notice"){
       fetchInfo(obj.message)
@@ -23,7 +27,7 @@ $.get("http://localhost:8081/createOrJoinRoom",function(data){
     in_room=true;
     var obj;
 
-    socket.send('{"operation":"require","message":"hoge"}')//wsが繋がった時まず盤面をとってくる
+    //socket.send('{"operation":"require","message":"hoge"}')//wsが繋がった時まず盤面をとってくる
   }
   socket.onclose=function(e){
     in_room=false;

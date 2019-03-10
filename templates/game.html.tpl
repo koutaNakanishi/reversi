@@ -6,15 +6,17 @@
       var board = new Image();    //画像オブジェクト作成
       var white = new Image();
       var black = new Image();
+      var loading=new Image();
       board.src = "http://localhost:8081/templates/board.png";  //写真のパスを指定する
       black.src = "http://localhost:8081/templates/black.png";
       white.src = "http://localhost:8081/templates/white.png";
+      loading.src="http://localhost:8081/templates/loading.gif";
       var maxX=8;
       var maxY=8;
     </script>
  </head>
 
- <body onload="draw1()">
+ <body>
 
 
 
@@ -23,9 +25,14 @@
        <input type="button" value="タイトルに戻る"/>
   </form>
 
+
+
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"> </script>
 <canvas id="cv1" width="800" height="800"></canvas>
-
+<div id="matchingField">
+  <img src="http://localhost:8081/templates/loading.gif">
+  マッチングチュウ....
+</div>
 
 
 <script>
@@ -36,7 +43,7 @@ var boardX=100,boardY=100;
 var stoneX=100,stoneY=100;
 var myStone=0;
 var myTurn=false;
-function draw1(){
+function drawDefault(){
 
   for(var y=0;y<maxY;y++){
     for(var x=0;x<maxX;x++){

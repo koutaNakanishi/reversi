@@ -77,9 +77,10 @@ func (game *Game) run() { //ゲームが走る=対戦中
 
 func (game *Game) runRunning() { //ゲームが走る=対戦中
 	clients := *(game.clients)
-	if len(clients) < MAX_PLAYER {
-		fmt.Println("ゲームを続行できません")
-		panic(len(clients))
+	if len(clients) < MAX_PLAYER { //人が抜けてしまった時
+		fmt.Printf("Can't continue the game clients %v\n", len(clients))
+		//panic(len(clients))
+		game.setState(STATE_FINISHED) //TODO FINISHじゃなくてconitnueに移動するように
 	}
 
 	if game.handCount == 3 { //TODO しっかり終了時の処理をする
