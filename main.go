@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -38,13 +39,12 @@ func CreateOrJoinRoomHandler(w http.ResponseWriter, r *http.Request) { // /creat
 	if will_join_room == -1 {
 		will_join_room = createRoomAndInit() // 部屋を作ってhttpHandleやgoruitineの実行などもろもろやる あと部屋番号を返す
 	}
-
+	fmt.Fprintf(w, createwsAdress(will_join_room))
 }
 
 func createRoomAndInit() int {
-
 	room := newRoom(room_num)
-	room_url := createwsAdress(room_num)
+	room_url := "/room" + strconv.Itoa(room_num)
 	http.Handle(room_url, room)
 	go room.run()
 	go room.game.run()
