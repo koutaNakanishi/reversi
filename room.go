@@ -11,6 +11,7 @@ import (
 const MAX_CONNECTION_PER_ROOM = 2 //1部屋に繋げる最大の人数
 const MAX_ROOM_NUM = 10           //最大のサーバ全体の部屋の数
 type room struct {
+	room_id    int
 	forward    chan MessageInfo //誰かが送信したメッセージ
 	join       chan *client     //入室してきたクライアント
 	leave      chan *client     //体質していくクライアント
@@ -21,11 +22,12 @@ type room struct {
 }
 
 func (r *room) GetRoomNum() int {
-	return len(r.clientsMap)
+	return len(r.clients)
 }
-func newRoom() *room {
+func newRoom(room_id_ int) *room {
 	fmt.Println("OK")
 	ret := &room{
+		room_id:    room_id_,
 		forward:    make(chan MessageInfo),
 		join:       make(chan *client),
 		leave:      make(chan *client),
@@ -60,14 +62,16 @@ func (r *room) run() {
 func checkGameState(state int, r *room) {
 	//fmt.Println(r.game.GetState())
 	if state == STATE_FINISHED {
+		//ここでゲーム終了処理
 		for _, c := range r.clients { //TODO ゲーム終了時の実際の部屋やgameオブジェクトの処理はroom.goで
 			c.WriteMessageInfo("notice", "finish")
 			c.socket.Close()
 			fmt.Println("RESET THE GAME")
 		}
-		fmt.Println(r.game, r.game.state)
-		r.game = NewGame(&r.gameState, &r.clients)
-		fmt.Println(r.game, r.game.state)
+		rooms = removeRoom(rooms, r)
+		//fmt.Println(r.game, r.game.state)
+		//r.game = NewGame(&r.gameState, &r.clients)
+		//fmt.Println(r.game, r.game.state)
 	}
 
 }
@@ -111,9 +115,19 @@ func (r *room) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	client.read()
 }
 
-func remove(clients []*client, search *client) []*client {
+func removeClient(clients []*client, search *client) []*client {
 	result := []*client{}
 	for _, v := range clients {
+		if v != search {
+			result = append(result, v)
+		}
+	}
+	return result
+}
+
+func removeRoom(rooms []*room, search *room) []*room {
+	result := []*room{}
+	for _, v := range rooms {
 		if v != search {
 			result = append(result, v)
 		}
